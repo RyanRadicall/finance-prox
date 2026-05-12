@@ -313,15 +313,30 @@ if not st.session_state["logado"]:
 
 # Header
 h1, h2 = st.columns([4, 1])
+def primeiro_nome():
+    email = st.session_state.get("user_email", "")
+
+    if email:
+        nome = email.split("@")[0]
+        nome = nome.split(".")[0]
+        nome = nome.split("_")[0]
+        return nome.capitalize()
+
+    return "Usuário"
+
 with h1:
     st.markdown(f"""
     <div style="display:flex;align-items:center;gap:16px;margin-bottom:18px">
       <div class="logo-text">Finance <span>PRO X</span></div>
+
       <div class="live-badge">● Ao vivo</div>
-      <div style="font-size:12px;opacity:.4;margin-left:8px">
-        {st.session_state.get('user_email','')}
+
+      <div style="font-size:15px;font-weight:600;color:white">
+        Olá, {primeiro_nome()} 👋
       </div>
-    </div>""", unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
+    
 with h2:
     st.markdown("<br>", unsafe_allow_html=True)
     if st.button("🚪 Sair", key="btn_logout"):
