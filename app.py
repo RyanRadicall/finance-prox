@@ -214,7 +214,8 @@ def plotly_cfg():
 
 # ── Supabase helpers ──────────────────────────────────────────────────────────
 def get_user_id():
-    return st.session_state.get("user_id")
+    user_id = st.session_state.get("user_id")
+    return user_id if user_id else None
 
 def db_get_lancamentos():
     uid = get_user_id()
@@ -222,10 +223,44 @@ def db_get_lancamentos():
     return r.data or []
 
 def db_add_lancamento(nome, cat, val, tipo, icone, dt):
-    uid = get_user_id()
+
+    user_id = get_user_id()
+
+    def db_add_lancamento(nome, cat, val, tipo, icone, dt):
+    user_id = get_user_id()
+
+    if not user_id:
+        st.error("Usuário não autenticado")
+        return
+
+    try:
+        supabase.table("lancamentos").insert({
+            "user_id": user_id,
+            "nome": nome,
+            "categoria": cat,
+            "valor": val,
+            "tipo": tipo,
+            "icone": icone,
+            "data": str(dt)
+        }).execute()
+
+    except Exception as e:
+        st.error(f"Erro Supabase: {e}")
+    except Exception as e:
+        st.error(f"Erro Supabase: {e}")
+        
+    if not uid():
+        st.error("Usuário não autenticado")
+        return
+
     supabase.table("lancamentos").insert({
-        "user_id": uid, "nome": nome, "categoria": cat,
-        "valor": val, "tipo": tipo, "icone": icone, "data": str(dt)
+        "user_id": uid(),
+        "nome": nome,
+        "categoria": cat,
+        "valor": val,
+        "tipo": tipo,
+        "icone": icone,
+        "data": str(dt)
     }).execute()
 
 def db_del_lancamento(rid):
@@ -325,6 +360,14 @@ if not st.session_state["logado"]:
     login_screen()
     st.stop()
 
+if "logado" not in st.session_state or not st.session_state["logado"]:
+    login_screen()
+    st.stop()
+
+if not get_user_id():
+    st.error("Sessão inválida. Faça login novamente.")
+    st.stop()
+    
 # ── MAIN APP ──────────────────────────────────────────────────────────────────
 
 # ── Header ────────────────────────────────────────────────────────────────────
