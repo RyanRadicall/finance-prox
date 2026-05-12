@@ -215,7 +215,7 @@ def plotly_cfg():
 # ── Supabase helpers ──────────────────────────────────────────────────────────
 def get_user_id():
     user_id = st.session_state.get("user_id")
-    return user_id if user_id else None
+    return user_id
 
 def db_get_lancamentos():
     uid = get_user_id()
