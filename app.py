@@ -303,9 +303,7 @@ def login_screen():
                     st.error("A senha precisa ter pelo menos 6 caracteres.")
                 else:
                     try:
-                        from gotrue.types import SignUpWithPasswordCredentials
-                        creds = SignUpWithPasswordCredentials(email=email, password=senha)
-                        res = supabase.auth.sign_up(creds)
+                        res = supabase.auth.sign_up({"email": email, "password": senha})
                         if res.user:
                             st.success("✅ Conta criada! Agora clique em Entrar.")
                         else:
