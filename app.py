@@ -213,29 +213,40 @@ def plotly_cfg():
     )
 
 # ── Supabase helpers ──────────────────────────────────────────────────────────
+
 def get_user_id():
-    user_id = st.session_state.get("user_id")
-    return user_id
+    """Retorna o user_id da sessão"""
+    return st.session_state.get("user_id")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# LANÇAMENTOS
+# ═════════════════════════════════════════════════════════════════════════════
 
 def db_get_lancamentos():
     uid = get_user_id()
-    r = supabase.table("lancamentos").select("*").eq("user_id", uid).order("data", desc=True).execute()
+    if not uid:
+        return []
+
+    r = supabase.table("lancamentos") \
+        .select("*") \
+        .eq("user_id", uid) \
+        .order("data", desc=True) \
+        .execute()
+
     return r.data or []
 
+
 def db_add_lancamento(nome, cat, val, tipo, icone, dt):
+    uid = get_user_id()
 
-    user_id = get_user_id()
-
-    def db_add_lancamento(nome, cat, val, tipo, icone, dt):
-    user_id = get_user_id()
-
-    if not user_id:
+    if not uid:
         st.error("Usuário não autenticado")
         return
 
     try:
         supabase.table("lancamentos").insert({
-            "user_id": user_id,
+            "user_id": uid,
             "nome": nome,
             "categoria": cat,
             "valor": val,
@@ -245,57 +256,112 @@ def db_add_lancamento(nome, cat, val, tipo, icone, dt):
         }).execute()
 
     except Exception as e:
-        st.error(f"Erro Supabase: {e}")
-    except Exception as e:
-        st.error(f"Erro Supabase: {e}")
-        
-    if not uid():
-        st.error("Usuário não autenticado")
-        return
+        st.error(f"Erro Supabase (lancamento): {e}")
 
-    supabase.table("lancamentos").insert({
-        "user_id": uid(),
-        "nome": nome,
-        "categoria": cat,
-        "valor": val,
-        "tipo": tipo,
-        "icone": icone,
-        "data": str(dt)
-    }).execute()
 
 def db_del_lancamento(rid):
-    supabase.table("lancamentos").delete().eq("id", rid).execute()
+    try:
+        supabase.table("lancamentos").delete().eq("id", rid).execute()
+    except Exception as e:
+        st.error(f"Erro ao deletar lançamento: {e}")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# INVESTIMENTOS
+# ═════════════════════════════════════════════════════════════════════════════
 
 def db_get_investimentos():
     uid = get_user_id()
-    r = supabase.table("investimentos").select("*").eq("user_id", uid).execute()
+    if not uid:
+        return []
+
+    r = supabase.table("investimentos") \
+        .select("*") \
+        .eq("user_id", uid) \
+        .execute()
+
     return r.data or []
+
 
 def db_add_investimento(nome, val, chg, cor):
     uid = get_user_id()
-    supabase.table("investimentos").insert({
-        "user_id": uid, "nome": nome, "valor": val, "variacao": chg, "cor": cor
-    }).execute()
+
+    if not uid:
+        st.error("Usuário não autenticado")
+        return
+
+    try:
+        supabase.table("investimentos").insert({
+            "user_id": uid,
+            "nome": nome,
+            "valor": val,
+            "variacao": chg,
+            "cor": cor
+        }).execute()
+
+    except Exception as e:
+        st.error(f"Erro Supabase (investimento): {e}")
+
 
 def db_del_investimento(rid):
-    supabase.table("investimentos").delete().eq("id", rid).execute()
+    try:
+        supabase.table("investimentos").delete().eq("id", rid).execute()
+    except Exception as e:
+        st.error(f"Erro ao deletar investimento: {e}")
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# METAS
+# ═════════════════════════════════════════════════════════════════════════════
 
 def db_get_metas():
     uid = get_user_id()
-    r = supabase.table("metas").select("*").eq("user_id", uid).execute()
+    if not uid:
+        return []
+
+    r = supabase.table("metas") \
+        .select("*") \
+        .eq("user_id", uid) \
+        .execute()
+
     return r.data or []
+
 
 def db_add_meta(nome, atual, total, cor):
     uid = get_user_id()
-    supabase.table("metas").insert({
-        "user_id": uid, "nome": nome, "atual": atual, "total": total, "cor": cor
-    }).execute()
+
+    if not uid:
+        st.error("Usuário não autenticado")
+        return
+
+    try:
+        supabase.table("metas").insert({
+            "user_id": uid,
+            "nome": nome,
+            "atual": atual,
+            "total": total,
+            "cor": cor
+        }).execute()
+
+    except Exception as e:
+        st.error(f"Erro Supabase (meta): {e}")
+
 
 def db_update_meta(rid, atual):
-    supabase.table("metas").update({"atual": atual}).eq("id", rid).execute()
+    try:
+        supabase.table("metas").update({
+            "atual": atual
+        }).eq("id", rid).execute()
+
+    except Exception as e:
+        st.error(f"Erro ao atualizar meta: {e}")
+
 
 def db_del_meta(rid):
-    supabase.table("metas").delete().eq("id", rid).execute()
+    try:
+        supabase.table("metas").delete().eq("id", rid).execute()
+    except Exception as e:
+        st.error(f"Erro ao deletar meta: {e}")
 
 # ── Auth ──────────────────────────────────────────────────────────────────────
 def login_screen():
