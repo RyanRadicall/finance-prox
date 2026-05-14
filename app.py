@@ -599,22 +599,21 @@ def tela_login():
     </div>
     """, unsafe_allow_html=True)
 
-    # container real do formulário
     form_container = st.container()
 
     with form_container:
         _, col, _ = st.columns([1, 1.2, 1])
 
         with col:
-            novo_a = st.number_input(
-    "Atualizar valor",
-    value=float(m["atual"]),
-    min_value=0.0,
-    step=100.0,
-    format="%.2f",
-    key=f"upd_{m['id']}",
-    label_visibility="collapsed"
-)
+
+            # ✅ CORRIGIDO
+            aba = st.radio(
+                "Selecione uma opção",
+                ["Entrar", "Criar conta"],
+                horizontal=True,
+                label_visibility="collapsed",
+                key="auth_aba"
+            )
 
             email = st.text_input(
                 "E-mail",
@@ -676,7 +675,7 @@ def tela_login():
 
                     else:
                         try:
-                            res = supabase.auth.sign_up({
+                            supabase.auth.sign_up({
                                 "email": email.strip(),
                                 "password": senha
                             })
@@ -685,7 +684,6 @@ def tela_login():
 
                         except Exception as e:
                             st.error(f"Erro ao criar conta: {e}")
-
 # ── GUARD ─────────────────────────────────────────────────────────────────────
 if "logado" not in st.session_state:
     st.session_state["logado"] = False
@@ -1061,53 +1059,142 @@ with tab_metas:
 
     with col_mf:
         st.markdown('<div class="form-box"><div class="form-title">➕ Nova Meta</div>', unsafe_allow_html=True)
-        meta_nome  = st.text_input("Nome da meta", placeholder="Ex: Fundo de emergência", key="meta_nome")
-        meta_atual = st.number_input("Valor atual (R$)", min_value=0.0, step=100.0, format="%.2f", key="meta_atual")
-        meta_total = st.number_input("Valor da meta (R$)", min_value=1.0, step=100.0, value=1000.0, format="%.2f", key="meta_total")
-        meta_cor   = st.selectbox("Cor", CORES, format_func=lambda c: COR_LABEL.get(c,c), key="meta_cor")
-        if st.button("✅ Adicionar meta", use_container_width=True, key="btn_add_meta"):
+
+        meta_nome  = st.text_input(
+            "Nome da meta",
+            placeholder="Ex: Fundo de emergência",
+            key="meta_nome"
+        )
+
+        meta_atual = st.number_input(
+            "Valor atual (R$)",
+            min_value=0.0,
+            step=100.0,
+            format="%.2f",
+            key="meta_atual"
+        )
+
+        meta_total = st.number_input(
+            "Valor da meta (R$)",
+            min_value=1.0,
+            step=100.0,
+            value=1000.0,
+            format="%.2f",
+            key="meta_total"
+        )
+
+        meta_cor = st.selectbox(
+            "Cor",
+            CORES,
+            format_func=lambda c: COR_LABEL.get(c, c),
+            key="meta_cor"
+        )
+
+        if st.button(
+            "✅ Adicionar meta",
+            use_container_width=True,
+            key="btn_add_meta"
+        ):
+
             if meta_nome.strip():
-                db_add_meta(meta_nome.strip(), meta_atual, meta_total, meta_cor)
+                db_add_meta(
+                    meta_nome.strip(),
+                    meta_atual,
+                    meta_total,
+                    meta_cor
+                )
+
                 st.success(f"✅ Meta '{meta_nome}' criada!")
                 st.rerun()
+
             else:
                 st.error("Digite o nome da meta.")
+
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col_ml:
-        st.markdown('<div class="panel"><div class="panel-title">Suas Metas</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="panel"><div class="panel-title">Suas Metas</div>',
+            unsafe_allow_html=True
+        )
+
         metas_list = db_metas()
+
         if not metas_list:
             st.info("Nenhuma meta cadastrada ainda.")
+
         for m in metas_list:
-            pct = min(round(m["atual"]/m["total"]*100),100) if m["total"]>0 else 0
+
+            pct = (
+                min(round(m["atual"] / m["total"] * 100), 100)
+                if m["total"] > 0 else 0
+            )
+
             st.markdown(f"""
             <div class="goal-wrap" style="margin-bottom:4px">
               <div class="goal-hdr">
                 <span class="goal-name" style="font-size:13px">{m['nome']}</span>
-                <span class="goal-pct" style="color:{m['cor']};font-size:13px">{pct}%</span>
+                <span class="goal-pct" style="color:{m['cor']};font-size:13px">
+                    {pct}%
+                </span>
               </div>
+
               <div class="goal-track" style="height:8px">
-                <div class="goal-fill" style="width:{pct}%;background:linear-gradient(90deg,{m['cor']},{m['cor']}80)"></div>
+                <div
+                    class="goal-fill"
+                    style="
+                        width:{pct}%;
+                        background:linear-gradient(
+                            90deg,
+                            {m['cor']},
+                            {m['cor']}80
+                        )
+                    ">
+                </div>
               </div>
+
               <div class="goal-vals">
                 <span>Atual: {fmt(m['atual'])}</span>
                 <span>Meta: {fmt(m['total'])}</span>
               </div>
-            </div>""", unsafe_allow_html=True)
-            cu, cd = st.columns([4,1])
+            </div>
+            """, unsafe_allow_html=True)
+
+            cu, cd = st.columns([4, 1])
+
             with cu:
-                novo_a = st.number_input("",
-                    value=float(m["atual"]), min_value=0.0,
-                    step=100.0, format="%.2f",
-                    key=f"upd_{m['id']}", label_visibility="collapsed")
-                if st.button("💾 Atualizar", key=f"save_{m['id']}"):
+
+                # ✅ CORRIGIDO
+                novo_a = st.number_input(
+                    "Atualizar valor",
+                    value=float(m["atual"]),
+                    min_value=0.0,
+                    step=100.0,
+                    format="%.2f",
+                    key=f"upd_{m['id']}",
+                    label_visibility="collapsed"
+                )
+
+                if st.button(
+                    "💾 Atualizar",
+                    key=f"save_{m['id']}"
+                ):
                     db_update_meta(m["id"], novo_a)
                     st.rerun()
+
             with cd:
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🗑️", key=f"delm_{m['id']}"):
+
+                if st.button(
+                    "🗑️",
+                    key=f"delm_{m['id']}"
+                ):
                     db_del_meta(m["id"])
                     st.rerun()
-            st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+
+            st.markdown(
+                '<div class="divider"></div>',
+                unsafe_allow_html=True
+            )
+
         st.markdown("</div>", unsafe_allow_html=True)
