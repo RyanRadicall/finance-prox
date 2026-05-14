@@ -606,13 +606,15 @@ def tela_login():
         _, col, _ = st.columns([1, 1.2, 1])
 
         with col:
-            aba = st.radio(
-                "",
-                ["Entrar", "Criar conta"],
-                horizontal=True,
-                label_visibility="collapsed",
-                key="auth_aba"
-            )
+            novo_a = st.number_input(
+    "Atualizar valor",
+    value=float(m["atual"]),
+    min_value=0.0,
+    step=100.0,
+    format="%.2f",
+    key=f"upd_{m['id']}",
+    label_visibility="collapsed"
+)
 
             email = st.text_input(
                 "E-mail",
