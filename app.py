@@ -588,63 +588,101 @@ def db_del_meta(rid):
 #  TELA DE LOGIN
 # ══════════════════════════════════════════════════════════════════════════════
 def tela_login():
-    _, col, _ = st.columns([1, 1.15, 1])
-    with col:
-        st.markdown("""
-        <div style="padding-top:60px">
+    st.markdown("""
+    <div class="login-outer">
         <div class="login-card">
-          <div class="login-logo">Finance PRO X</div>
-          <div class="login-sub">Inteligência financeira de nível institucional</div>
+            <div class="login-logo">Finance PRO X</div>
+            <div class="login-sub">
+                Inteligência financeira de nível institucional
+            </div>
         </div>
-        </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
 
-        # Sobrepõe o formulário dentro do card via Streamlit
-        st.markdown("<div style='margin-top:-280px;padding:0 24px 24px;position:relative;z-index:2'>", unsafe_allow_html=True)
+    # container real do formulário
+    form_container = st.container()
 
-        aba = st.radio("", ["Entrar","Criar conta"], horizontal=True,
-                       label_visibility="collapsed", key="auth_aba")
-        email = st.text_input("E-mail", placeholder="seu@email.com", key="auth_email")
-        senha = st.text_input("Senha", type="password", placeholder="••••••••", key="auth_senha")
-        st.markdown("<br>", unsafe_allow_html=True)
+    with form_container:
+        _, col, _ = st.columns([1, 1.2, 1])
 
-        if aba == "Entrar":
-            if st.button("🔐 Entrar na plataforma", use_container_width=True, key="btn_login"):
-                if not email.strip() or not senha:
-                    st.error("Preencha e-mail e senha.")
-                else:
-                    try:
-                        res = supabase.auth.sign_in_with_password({"email":email.strip(),"password":senha})
-                        st.session_state.update({"user_id":res.user.id,"user_email":res.user.email,"logado":True})
-                        st.rerun()
-                    except Exception as e:
-                        err = str(e).lower()
-                        if "invalid" in err or "credentials" in err:
-                            st.error("❌ E-mail ou senha incorretos.")
-                        elif "email not confirmed" in err:
-                            st.error("📧 Confirme seu e-mail antes de entrar.")
-                        else:
-                            st.error(f"Erro: {e}")
-        else:
-            if st.button("✨ Criar conta gratuita", use_container_width=True, key="btn_signup"):
-                if not email.strip():
-                    st.error("Digite seu e-mail.")
-                elif len(senha) < 6:
-                    st.error("Senha precisa ter ao menos 6 caracteres.")
-                else:
-                    try:
-                        res = supabase.auth.sign_up({"email":email.strip(),"password":senha})
-                        if res.user:
-                            st.success("✅ Conta criada! Clique em Entrar.")
-                        else:
-                            st.warning("Verifique seu e-mail para confirmar.")
-                    except Exception as e:
-                        err = str(e).lower()
-                        if "already" in err:
-                            st.error("E-mail já cadastrado. Use Entrar.")
-                        else:
-                            st.error(f"Erro: {e}")
-        st.markdown("</div>", unsafe_allow_html=True)
+        with col:
+            aba = st.radio(
+                "",
+                ["Entrar", "Criar conta"],
+                horizontal=True,
+                label_visibility="collapsed",
+                key="auth_aba"
+            )
+
+            email = st.text_input(
+                "E-mail",
+                placeholder="seu@email.com",
+                key="auth_email"
+            )
+
+            senha = st.text_input(
+                "Senha",
+                type="password",
+                placeholder="••••••••",
+                key="auth_senha"
+            )
+
+            st.markdown("<br>", unsafe_allow_html=True)
+
+            # LOGIN
+            if aba == "Entrar":
+
+                if st.button(
+                    "🔐 Entrar na plataforma",
+                    use_container_width=True,
+                    key="btn_login"
+                ):
+
+                    if not email.strip() or not senha:
+                        st.error("Preencha e-mail e senha.")
+
+                    else:
+                        try:
+                            res = supabase.auth.sign_in_with_password({
+                                "email": email.strip(),
+                                "password": senha
+                            })
+
+                            st.session_state["user_id"] = res.user.id
+                            st.session_state["user_email"] = res.user.email
+                            st.session_state["logado"] = True
+
+                            st.rerun()
+
+                        except Exception as e:
+                            st.error(f"Erro ao entrar: {e}")
+
+            # SIGNUP
+            else:
+
+                if st.button(
+                    "✨ Criar conta gratuita",
+                    use_container_width=True,
+                    key="btn_signup"
+                ):
+
+                    if not email.strip():
+                        st.error("Digite um e-mail.")
+
+                    elif len(senha) < 6:
+                        st.error("Senha precisa ter pelo menos 6 caracteres.")
+
+                    else:
+                        try:
+                            res = supabase.auth.sign_up({
+                                "email": email.strip(),
+                                "password": senha
+                            })
+
+                            st.success("Conta criada com sucesso!")
+
+                        except Exception as e:
+                            st.error(f"Erro ao criar conta: {e}")
 
 # ── GUARD ─────────────────────────────────────────────────────────────────────
 if "logado" not in st.session_state:
